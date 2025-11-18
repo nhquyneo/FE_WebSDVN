@@ -1,0 +1,236 @@
+/* Nền mờ */
+.popup-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  /* Popup */
+  .popup-body {
+    background: #fff;
+    width: 90%;
+    height: 90vh;
+    max-width: 90%;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: popupAppear 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Animation */
+  @keyframes popupAppear {
+    from { transform: scale(0.9); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  
+  /* Header */
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  
+  .popup-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  /* Nút X */
+  .popup-close {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  
+  /* Content */
+  .popup-content {
+    font-size: 15px;
+    color: #374151;
+    flex: 1;
+    overflow-y: hidden;        /* không cuộn 2 lần */
+    display: flex;             /* để content-box ăn hết chiều cao còn lại */
+    flex-direction: column;
+    min-height: 0;
+  }
+  
+  .popup-content-box {
+    background: #f3f4f6;
+    border: 1px dashed #d1d5db;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+    flex: 1;                   /* 🔥 chiếm hết phần còn lại */
+    min-height: 0;
+    overflow: auto;            /* nội dung bên trong (biểu đồ/bảng) tự cuộn nếu quá cao */
+  }
+  
+  /* Footer */
+  .popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+  
+  .popup-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #111827;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .popup-btn:hover {
+    background: #1f2937;
+  }
+  
+  /* TAB WRAPPER */
+  .popup-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  
+  /* TAB BUTTON */
+  .popup-tab-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 14px;
+  }
+  
+  .popup-tab-btn:hover {
+    background: #e5e7eb;
+  }
+  
+  /* TAB ACTIVE */
+  .popup-tab-btn.active {
+    background: #111827;
+    color: white;
+    border-color: #111827;
+  }
+  
+  /* Bộ lọc chung cho Tháng & Năm (nếu còn dùng) */
+  .popup-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: flex-end;
+    margin-bottom: 12px;
+  }
+  
+  .popup-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .popup-filter-group label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  .popup-filter-input {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    min-width: 140px;
+  }
+  
+  .popup-filter-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  
+  .popup-filter-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  
+  .popup-filter-btn:hover {
+    background: #e5e7eb;
+  }
+  
+  .popup-filter-btn.export {
+    background: #111827;
+    color: #ffffff;
+    border-color: #111827;
+  }
+  
+  .popup-filter-btn.export:hover {
+    background: #1f2937;
+  }
+  
+  /* Toolbar MONTH / YEAR / DATA / Apply / Export */
+  .toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+  
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .toolbar-label {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #111827;
+  }
+  
+  .toolbar-select {
+    min-width: 70px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid #9ca3af;
+    font-size: 12px;
+  }
+  
+  .toolbar-actions {
+    margin-left: auto;         /* 🔥 đẩy Apply/Export sang phải */
+    display: flex;
+    gap: 6px;
+  }
+  
+  .toolbar-btn {
+    padding: 4px 14px;
+    border-radius: 4px;
+    border: 1px solid #1d4ed8;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  
+  .toolbar-btn.export {
+    background: #1d4ed8;
+  }
+  
+  .toolbar-btn:hover {
+    background: #1e40af;
+  }

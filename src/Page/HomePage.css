@@ -1,0 +1,158 @@
+.container {
+    display: flex;
+    height: 100vh;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background-color: #f9fafb;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background-color: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .logo {
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  /* Nút menu */
+  .menu-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 600;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  
+  .menu-btn:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .menu-btn.active {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    background: #374151;
+  }
+  
+  /* ✅ Nút đăng xuất giữ ở cuối sidebar */
+  .logout-btn {
+    margin-top: auto;
+    padding: 10px 16px;
+    border-top: 1px solid #e5e7eb;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: #dc2626;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+  }
+  .logout-btn:hover {
+    background-color: #fee2e2;
+  }
+  
+  /* Khu vực nội dung bên phải */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 24px;
+  }
+  
+  /* ✅ Thẻ riêng hiển thị full_name, canh phải, có background */
+  .user-strip {
+    display: flex;
+    justify-content: flex-end; /* đẩy sát bên phải */
+    align-items: center;
+    background: linear-gradient(180deg, #ffffff, #f3f4f6);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  
+  .user-strip-text {
+    font-weight: 700;
+    color: #111827;
+  }
+  
+  /* Vùng nội dung chính (đẩy nhẹ xuống dưới user-strip) */
+  .content-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end; /* đẩy box nội dung sát bên phải */
+    align-items: flex-start;
+    padding-top: 16px;
+  }
+  
+  /* Hộp nội dung (1 div duy nhất) */
+  .content-box {
+    width: 100%;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  
+  .content-title {
+    font-size: 25px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+  }
+  
+  .content-desc {
+    color: #374151;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .machine-list {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 24px;   /* 🔥 khoảng cách giữa 2 dòng */
+    column-gap: 16px; /* khoảng cách giữa 2 nút trong cùng dòng */
+  }
+  
+  .machine-btn {
+    width: 100%;
+    height: 100px; /* 🔥 NÚT RẤT CAO */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 22px;
+    border: 2px solid #d1d5db;
+    background: #ffffff;
+    border-radius: 12px; /* 🔥 bo góc lớn, nhìn hiện đại */
+    cursor: pointer;
+    font-size: 20px; /* 🔥 chữ to hơn */
+    font-weight: 600;
+    color: #111827;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+  }
+  
+  .machine-btn:hover {
+    background: #e8f2ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    transform: translateY(-3px); /* hiệu ứng nổi lên */
+  }
+  
+  .machine-btn:active {
+    transform: scale(0.96);
+  }
+  

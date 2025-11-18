@@ -1,26 +1,16 @@
-import { useNavigate } from "react-router-dom";
+// src/Page/HomePage.js
+
 import { useState, useEffect } from "react";
-import { auth } from "../auth";
-import { linename, getMachinesByLine } from "../api"; // nhớ thêm getMachinesByLine trong api.js
-import MachinePopup from "../components/MachinePopup";
+import { linename, getMachinesByLine } from "../api";
 import "./HomePage.css";
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const user = auth.user || {};
-
-  const [lines, setLines] = useState([]);          // danh sách line
+  const [lines, setLines] = useState([]); // danh sách line
   const [activeLineId, setActiveLineId] = useState(null); // id line đang chọn
 
-  const [machines, setMachines] = useState([]);    // danh sách máy theo line
+  const [machines, setMachines] = useState([]); // danh sách máy theo line
   const [selectedMachine, setSelectedMachine] = useState(null); // máy đang chọn trong popup
-  const [isPopupOpen, setIsPopupOpen] = useState(false);        // trạng thái mở/đóng popup
-
-  const logout = () => {
-    auth.isAuthed = false;
-    auth.user = null;
-    navigate("/", { replace: true });
-  };
+  const [isPopupOpen, setIsPopupOpen] = useState(false); // trạng thái mở/đóng popup
 
   // helper chuẩn hoá dữ liệu line (phòng khi backend dùng LineID / LineName)
   const normalizeLines = (data) => {
@@ -105,9 +95,6 @@ export default function HomePage() {
       <div className="content-box">
         <h3 className="content-title">{currentLine.ten_line}</h3>
 
-        {/* <p className="content-desc">ID Line: {currentLine.idline}</p> */}
-
-        {/* Danh sách máy: 4 nút trên 1 dòng, nút to */}
         <div className="machine-list">
           {machines.map((machine) => (
             <button
@@ -148,24 +135,10 @@ export default function HomePage() {
             </button>
           ))}
         </nav>
-
-        {/* Nút đăng xuất giữ nguyên ở cuối sidebar */}
-        <button onClick={logout} className="logout-btn">
-          🚪 Đăng xuất
-        </button>
       </aside>
 
-      {/* Bên phải */}
-      <main className="main">
-        {/* Thẻ full_name sát bên phải */}
-        <div className="user-strip">
-          <span className="user-strip-text">
-            {user.full_name || "Người dùng"}
-          </span>
-        </div>
-
-        <div className="content-container">{renderContent()}</div>
-      </main>
+      {/* Nội dung chính */}
+      <main className="main-content">{renderContent()}</main>
 
       {/* Popup chi tiết máy – dùng chung */}
       <MachinePopup
@@ -173,6 +146,35 @@ export default function HomePage() {
         onClose={() => setIsPopupOpen(false)}
         machine={selectedMachine}
       />
+    </div>
+  );
+}
+
+/**
+ * Popup đơn giản hiển thị thông tin máy
+ * Nếu bạn đã có file riêng MachinePopup.js thì có thể xoá component này
+ * và đổi lại import cho đúng đường dẫn.
+ */
+function MachinePopup({ open, onClose, machine }) {
+  if (!open || !machine) return null;
+
+  return (
+    <div className="popup-backdrop">
+      <div className="popup-card">
+        <h3>Thông tin máy</h3>
+        <p>
+          <strong>ID:</strong> {machine.id}
+        </p>
+        <p>
+          <strong>Tên máy:</strong> {machine.name}
+        </p>
+
+        <div style={{ marginTop: 16, textAlign: "right" }}>
+          <button className="popup-close-btn" onClick={onClose}>
+            Đóng
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,18 +1,38 @@
 // src/Page/HomePage.js
-
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { linename, getMachinesByLine } from "../api";
+//import MachinePopup from "../components/MachinePopup";
+
+// page con
+import OverviewPage from "../pages/Overview";
+import PlanPage from "../pages/Plan";
+import ErrorStatsPage from "../pages/ErrorStats";
+
+import SideNav from "./SideNav";
 import "./HomePage.css";
 
 export default function HomePage() {
-  const [lines, setLines] = useState([]); // danh sách line
-  const [activeLineId, setActiveLineId] = useState(null); // id line đang chọn
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { lineId } = useParams();
 
-  const [machines, setMachines] = useState([]); // danh sách máy theo line
-  const [selectedMachine, setSelectedMachine] = useState(null); // máy đang chọn trong popup
-  const [isPopupOpen, setIsPopupOpen] = useState(false); // trạng thái mở/đóng popup
+  const [lines, setLines] = useState([]);
+  const [activeLineId, setActiveLineId] = useState(null);
+  const [machines, setMachines] = useState([]);
 
-  // helper chuẩn hoá dữ liệu line (phòng khi backend dùng LineID / LineName)
+  const [selectedMachine, setSelectedMachine] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const userName = "Người dùng";
+
+  const logout = () => {
+    // clear token nếu có
+    // localStorage.removeItem("token");
+    // localStorage.removeItem("user");
+    navigate("/", { replace: true });
+  };
+
   const normalizeLines = (data) => {
     if (!Array.isArray(data)) return [];
     return data.map((row) => ({
@@ -21,7 +41,6 @@ export default function HomePage() {
     }));
   };
 
-  // helper chuẩn hoá dữ liệu máy
   const normalizeMachines = (data) => {
     if (!Array.isArray(data)) return [];
     return data.map((row) => ({
@@ -30,7 +49,7 @@ export default function HomePage() {
     }));
   };
 
-  // load lines khi vào trang
+  // Load danh sách line
   useEffect(() => {
     async function loadLines() {
       try {
@@ -38,79 +57,93 @@ export default function HomePage() {
         const normalized = normalizeLines(data);
         setLines(normalized);
 
-        if (normalized.length > 0) {
+        // Giữ logic cũ: auto load máy line đầu tiên (dù chưa chuyển route)
+        if (normalized.length > 0 && !lineId) {
           const firstId = normalized[0].idline;
           setActiveLineId(firstId);
-
-          // load luôn máy của line đầu tiên
           try {
             const mData = await getMachinesByLine(firstId);
             setMachines(normalizeMachines(mData));
           } catch (err) {
-            console.error("Lỗi load máy line đầu tiên:", err);
-            setMachines([]);
+            console.error("Lỗi tải máy:", err);
           }
         }
       } catch (err) {
-        console.error("Lỗi load line:", err);
-        setLines([]);
+        console.error("Lỗi tải line:", err);
       }
     }
 
     loadLines();
-  }, []);
+  }, [lineId]);
 
-  // khi chọn line ở sidebar
-  const handleSelectLine = async (idline) => {
-    setActiveLineId(idline);
-    setSelectedMachine(null); // reset popup khi đổi line
-
-    try {
-      const mData = await getMachinesByLine(idline);
-      setMachines(normalizeMachines(mData));
-    } catch (err) {
-      console.error("Lỗi load máy theo line:", err);
-      setMachines([]);
+  // Khi route /line/:lineId đổi → load máy cho line đó
+  useEffect(() => {
+    if (!lineId) {
+      setActiveLineId(null);
+      return;
     }
-  };
 
-  // khi click vào nút máy
+    const idNum = Number(lineId);
+    if (!idNum) return;
+
+    setActiveLineId(idNum);
+
+    async function loadMachines() {
+      try {
+        const mData = await getMachinesByLine(idNum);
+        setMachines(normalizeMachines(mData));
+      } catch (err) {
+        console.error("Lỗi tải máy theo line:", err);
+        setMachines([]);
+      }
+    }
+
+    loadMachines();
+  }, [lineId]);
+
   const handleSelectMachine = (machine) => {
     setSelectedMachine(machine);
     setIsPopupOpen(true);
   };
 
-  const renderContent = () => {
-    const currentLine = lines.find((l) => l.idline === activeLineId);
+  // Render nội dung chính theo route
+  const renderMainContent = () => {
+    if (location.pathname.startsWith("/plan")) return <PlanPage />;
+    if (location.pathname.startsWith("/error")) return <ErrorStatsPage />;
+    if (location.pathname.startsWith("/line/")) return renderLinePage();
 
-    if (!currentLine) {
+    // Mặc định: Tổng quan
+    return <OverviewPage />;
+  };
+
+  const renderLinePage = () => {
+    const line = lines.find((l) => l.idline === activeLineId);
+
+    if (!line)
       return (
         <div className="content-box">
-          <h3 className="content-title">Không có dữ liệu</h3>
+          <h3 className="content-title">Không có dữ liệu Line</h3>
         </div>
       );
-    }
 
     return (
       <div className="content-box">
-        <h3 className="content-title">{currentLine.ten_line}</h3>
+        <h3 className="content-title">{line.ten_line}</h3>
 
         <div className="machine-list">
-          {machines.map((machine) => (
+          {machines.map((m) => (
             <button
-              key={machine.id}
+              key={m.id}
               className="machine-btn"
-              onClick={() => handleSelectMachine(machine)}
+              onClick={() => handleSelectMachine(m)}
             >
-              {machine.id}. {machine.name}
+              {m.id}. {m.name}
             </button>
           ))}
         </div>
 
         {machines.length === 0 && (
-          <p className="content-desc" style={{ marginTop: 12 }}>
-            Chưa có máy nào cho line này.
-          </p>
+          <p className="content-desc">Chưa có máy nào cho line này.</p>
         )}
       </div>
     );
@@ -118,63 +151,28 @@ export default function HomePage() {
 
   return (
     <div className="container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="logo">🌿 MyApp</div>
+      {/* SIDENAV tách riêng */}
+      <SideNav
+        lines={lines}
+        onSelectMachine={handleSelectMachine}
+        onLogout={logout}
+      />
 
-        <nav>
-          {lines.map((line) => (
-            <button
-              key={line.idline}
-              onClick={() => handleSelectLine(line.idline)}
-              className={`menu-btn ${
-                activeLineId === line.idline ? "active" : ""
-              }`}
-            >
-              {line.ten_line}
-            </button>
-          ))}
-        </nav>
-      </aside>
+      {/* MAIN CONTENT */}
+      <main className="main">
+        <div className="user-strip">
+          <span className="user-strip-text">{userName}</span>
+        </div>
 
-      {/* Nội dung chính */}
-      <main className="main-content">{renderContent()}</main>
+        <div className="content-container">{renderMainContent()}</div>
+      </main>
 
-      {/* Popup chi tiết máy – dùng chung */}
-      <MachinePopup
+      {/* Popup máy */}
+      {/* <MachinePopup
         open={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
         machine={selectedMachine}
-      />
-    </div>
-  );
-}
-
-/**
- * Popup đơn giản hiển thị thông tin máy
- * Nếu bạn đã có file riêng MachinePopup.js thì có thể xoá component này
- * và đổi lại import cho đúng đường dẫn.
- */
-function MachinePopup({ open, onClose, machine }) {
-  if (!open || !machine) return null;
-
-  return (
-    <div className="popup-backdrop">
-      <div className="popup-card">
-        <h3>Thông tin máy</h3>
-        <p>
-          <strong>ID:</strong> {machine.id}
-        </p>
-        <p>
-          <strong>Tên máy:</strong> {machine.name}
-        </p>
-
-        <div style={{ marginTop: 16, textAlign: "right" }}>
-          <button className="popup-close-btn" onClick={onClose}>
-            Đóng
-          </button>
-        </div>
-      </div>
+      /> */}
     </div>
   );
 }

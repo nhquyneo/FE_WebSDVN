@@ -1,6 +1,7 @@
 // src/App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./Page/HomePage";
+import MachinePage from "./pages/Machine";
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
 
         {/* Trang từng line */}
         <Route path="/line/:lineId" element={<HomePage />} />
+        
+        {/* 👇 Trang overview 1 máy cụ thể */}
+        <Route path="/machine/:machineId" element={<MachinePage />} />
       </Routes>
     </BrowserRouter>
   );

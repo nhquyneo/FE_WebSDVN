@@ -147,9 +147,6 @@ export default function MachineYearPage({ machine, year, dataType }) {
     ? lineMap[normalizedType] || lineMap["OEE RATIO"]
     : null;
 
-  const dataLabel = isAll
-    ? "All (OEE, OK Product, Output, Activity)"
-    : selectedLine.label;
 
   const hasRatioData = ratioChartData.length > 0;
 
@@ -281,14 +278,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
         </div>
       )}
 
-      {/* HEADER */}
-      {/* <div>
-        <h4 style={{ margin: "0 0 4px" }}>Dữ liệu theo năm</h4>
-        <p style={{ margin: 0, fontSize: 13 }}>
-          Máy: <b>{machine.name}</b> (ID: {machine.id}) &nbsp;|&nbsp;{" "}
-          <b>{yearLabel}</b> &nbsp;|&nbsp; Data: <b>{dataLabel}</b>
-        </p>
-      </div> */}
+      
 
       {/* BIỂU ĐỒ LINE – RATIO THEO THÁNG */}
       <div

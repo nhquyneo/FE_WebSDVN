@@ -1,8 +1,8 @@
 // src/components/SideNav.js
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getMachinesByLine } from "../api";
-import "./HomePage.css"; // nếu muốn tách riêng CSS, hoặc dùng HomePage.css cũng được
+import "./HomePage.css";
 
 const SideNav = ({ lines, onSelectMachine, onLogout }) => {
   const navigate = useNavigate();
@@ -10,6 +10,9 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
 
   const [hoveredLineId, setHoveredLineId] = useState(null);
   const [hoveredMachines, setHoveredMachines] = useState([]);
+
+  // dùng ref để giữ id của timeout
+  const hideTimeoutRef = useRef(null);
 
   // active theo URL
   const isOverview =
@@ -42,6 +45,12 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
   };
 
   const handleLineMouseEnter = async (idline) => {
+    // nếu đang có timeout ẩn thì hủy
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+
     setHoveredLineId(idline);
     try {
       const mData = await getMachinesByLine(idline);
@@ -53,8 +62,11 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
   };
 
   const handleLineMouseLeave = () => {
-    setHoveredLineId(null);
-    setHoveredMachines([]);
+    // không ẩn ngay, đợi 180ms
+    hideTimeoutRef.current = setTimeout(() => {
+      setHoveredLineId(null);
+      setHoveredMachines([]);
+    }, 180);
   };
 
   return (
@@ -90,10 +102,13 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
               </button>
 
               {hoveredLineId === line.idline && (
-                <div className="line-dropdown">
-                  <div className="line-dropdown-header">
-                    {line.ten_line}
-                  </div>
+                <div
+                  className="line-dropdown"
+                  // di chuột trong dropdown vẫn tính là Enter/Leave cùng 1 item
+                  onMouseEnter={() => handleLineMouseEnter(line.idline)}
+                  onMouseLeave={handleLineMouseLeave}
+                >
+                  <div className="line-dropdown-header">{line.ten_line}</div>
                   <ul className="line-machine-list">
                     {hoveredMachines.length === 0 ? (
                       <li className="line-machine-empty">
@@ -130,10 +145,6 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
             onClick={handleGoError}
           >
             Thống kê lỗi
-          </button>
-
-          <button onClick={onLogout} className="logout-btn">
-            🚪 Đăng xuất
           </button>
         </div>
       </div>

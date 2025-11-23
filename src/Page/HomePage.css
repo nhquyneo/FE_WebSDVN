@@ -65,8 +65,7 @@
   transform: translateY(-1px);
 }
 
-.menu-btn.active,
-.menu-btn.home-btn {
+.menu-btn.active {
   background: #f97316;
   border-color: #f97316;
   color: #ffffff;

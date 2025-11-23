@@ -2,7 +2,6 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { linename, getMachinesByLine } from "../api";
-//import MachinePopup from "../components/MachinePopup";
 
 // page con
 import OverviewPage from "../pages/Overview";
@@ -21,17 +20,8 @@ export default function HomePage() {
   const [activeLineId, setActiveLineId] = useState(null);
   const [machines, setMachines] = useState([]);
 
-  const [selectedMachine, setSelectedMachine] = useState(null);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-  const userName = "Người dùng";
-
-  const logout = () => {
-    // clear token nếu có
-    // localStorage.removeItem("token");
-    // localStorage.removeItem("user");
-    navigate("/", { replace: true });
-  };
+  //const [selectedMachine, setSelectedMachine] = useState(null);
+  //const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const normalizeLines = (data) => {
     if (!Array.isArray(data)) return [];
@@ -102,8 +92,11 @@ export default function HomePage() {
   }, [lineId]);
 
   const handleSelectMachine = (machine) => {
-    setSelectedMachine(machine);
-    setIsPopupOpen(true);
+    //setSelectedMachine(machine);
+    //setIsPopupOpen(true);
+    navigate(`/machine/${machine.id}`, {
+      state: { machine }, // truyền thêm thông tin để MachinePage dùng luôn
+    });
   };
 
   // Render nội dung chính theo route
@@ -155,24 +148,17 @@ export default function HomePage() {
       <SideNav
         lines={lines}
         onSelectMachine={handleSelectMachine}
-        onLogout={logout}
       />
 
       {/* MAIN CONTENT */}
       <main className="main">
-        <div className="user-strip">
+        {/* <div className="user-strip">
           <span className="user-strip-text">{userName}</span>
-        </div>
+        </div> */}
 
         <div className="content-container">{renderMainContent()}</div>
       </main>
 
-      {/* Popup máy */}
-      {/* <MachinePopup
-        open={isPopupOpen}
-        onClose={() => setIsPopupOpen(false)}
-        machine={selectedMachine}
-      /> */}
     </div>
   );
 }

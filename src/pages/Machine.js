@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 
-import "./MachinePage.css"; // style riêng cho trang
-import "../Page/HomePage.css"; // dùng lại layout chung (container, sidebar, main, user-strip...)
+import "./MachinePage.css";
+import "../Page/HomePage.css";
 
 import MachineDayPage from "../components/MachineDayPage";
 import MachineMonthPage from "../components/MachineMonthPage";
@@ -22,11 +22,7 @@ export default function MachinePage() {
   // ========= SIDENAV / LAYOUT =========
   const [lines, setLines] = useState([]);
 
-
   const logout = () => {
-    // clear token nếu có
-    // localStorage.removeItem("token");
-    // localStorage.removeItem("user");
     navigate("/", { replace: true });
   };
 
@@ -59,7 +55,6 @@ export default function MachinePage() {
   };
 
   // ========= LOGIC MÁY =========
-  // Lấy machine từ state (navigate từ SideNav / HomePage) nếu có
   const machineFromState = location.state?.machine || null;
 
   const resolvedMachineId = machineFromState?.id ?? paramMachineId ?? null;
@@ -70,7 +65,7 @@ export default function MachinePage() {
   const [activeTab, setActiveTab] = useState("day");
 
   const [dayFilter, setDayFilter] = useState(
-    new Date().toISOString().slice(0, 10) // yyyy-MM-dd
+    new Date().toISOString().slice(0, 10)
   );
   const [monthFilter, setMonthFilter] = useState(
     (new Date().getUTCMonth() + 1).toString()
@@ -158,6 +153,13 @@ export default function MachinePage() {
     }
   }
 
+  const tabCaption =
+    activeTab === "day"
+      ? "Theo ngày"
+      : activeTab === "month"
+      ? "Theo tháng"
+      : "Theo năm";
+
   return (
     <div className="container">
       {/* SIDENAV giống HomePage */}
@@ -179,164 +181,185 @@ export default function MachinePage() {
                   <div className="machine-page-subtitle">
                     Theo dõi OEE / Output / Activity theo ngày, tháng, năm
                   </div>
+
+                  {machine && (
+                    <div className="machine-page-meta">
+                      <span className="machine-chip">
+                        ID máy: <strong>{machine.id}</strong>
+                      </span>
+                      <span className="machine-chip">
+                        Chế độ hiển thị: <strong>{tabCaption}</strong>
+                      </span>
+                      <span className="machine-chip">
+                        Ngày xem: <strong>{dayFilter}</strong>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="machine-page-header-right">
-                {/* Có thể thêm info line, code máy... sau này */}
+                <span className="machine-status-pill">Production OEE</span>
               </div>
             </div>
 
             <div className="machine-page-content">
               {!machine ? (
-                // Trường hợp không có machineId → chỉ báo lỗi nhẹ
                 <div className="machine-page-empty">
                   Không có thông tin máy. Vui lòng chọn máy từ menu bên trái.
                 </div>
               ) : (
                 <>
-                  {/* Tabs */}
-                  <div className="popup-tabs">
-                    <button
-                      className={`popup-tab-btn ${
-                        activeTab === "day" ? "active" : ""
-                      }`}
-                      onClick={() => setActiveTab("day")}
-                    >
-                      Ngày
-                    </button>
-                    <button
-                      className={`popup-tab-btn ${
-                        activeTab === "month" ? "active" : ""
-                      }`}
-                      onClick={() => setActiveTab("month")}
-                    >
-                      Tháng
-                    </button>
-                    <button
-                      className={`popup-tab-btn ${
-                        activeTab === "year" ? "active" : ""
-                      }`}
-                      onClick={() => setActiveTab("year")}
-                    >
-                      Năm
-                    </button>
-                  </div>
-
-                  {/* Toolbar DAY */}
-                  {activeTab === "day" && (
-                    <div className="toolbar-row">
-                      <div className="toolbar-group">
-                        <span className="toolbar-label">DAY:</span>
-                        <input
-                          type="date"
-                          className="toolbar-select"
-                          value={dayFilter}
-                          onChange={(e) => setDayFilter(e.target.value)}
-                        />
-                      </div>
-                      <div className="toolbar-actions" />
-                    </div>
-                  )}
-
-                  {/* Toolbar MONTH */}
-                  {activeTab === "month" && (
-                    <div className="toolbar-row">
-                      <div className="toolbar-group">
-                        <span className="toolbar-label">MONTH:</span>
-                        <select
-                          className="toolbar-select"
-                          value={monthFilter}
-                          onChange={(e) => setMonthFilter(e.target.value)}
-                        >
-                          {[...Array(12)].map((_, i) => (
-                            <option key={i + 1} value={i + 1}>
-                              {i + 1}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="toolbar-group">
-                        <span className="toolbar-label">DATA:</span>
-                        <select
-                          className="toolbar-select"
-                          value={selectedMetric}
-                          onChange={(e) => setSelectedMetric(e.target.value)}
-                        >
-                          <option value="ALL">All</option>
-                          <option value="OEE RATIO">OEE Ratio</option>
-                          <option value="OK PRODUCT RATIO">
-                            OK Product ratio
-                          </option>
-                          <option value="OUTPUT RATIO">Output Ratio</option>
-                          <option value="ACTIVITY RATIO">
-                            Activity Ratio
-                          </option>
-                        </select>
-                      </div>
-
-                      <div className="toolbar-actions">
+                  {/* Topbar gồm Tabs + toolbar */}
+                  <div className="machine-page-topbar">
+                    {/* Tabs */}
+                    <div className="popup-tabs">
+                      <div className="machine-tab-list">
                         <button
-                          className="toolbar-btn export"
-                          onClick={handleExportMonth}
+                          className={`popup-tab-btn ${
+                            activeTab === "day" ? "active" : ""
+                          }`}
+                          onClick={() => setActiveTab("day")}
                         >
-                          Export Excel
+                          Ngày
+                        </button>
+                        <button
+                          className={`popup-tab-btn ${
+                            activeTab === "month" ? "active" : ""
+                          }`}
+                          onClick={() => setActiveTab("month")}
+                        >
+                          Tháng
+                        </button>
+                        <button
+                          className={`popup-tab-btn ${
+                            activeTab === "year" ? "active" : ""
+                          }`}
+                          onClick={() => setActiveTab("year")}
+                        >
+                          Năm
                         </button>
                       </div>
-                    </div>
-                  )}
 
-                  {/* Toolbar YEAR */}
-                  {activeTab === "year" && (
-                    <div className="toolbar-row">
-                      <div className="toolbar-group">
-                        <span className="toolbar-label">YEAR:</span>
-                        <select
-                          className="toolbar-select"
-                          value={yearFilter}
-                          onChange={(e) => setYearFilter(e.target.value)}
-                        >
-                          {Array.from({ length: 8 }).map((_, idx) => {
-                            const y = 2022 + idx;
-                            return (
-                              <option key={y} value={y}>
-                                {y}
+                      <div className="machine-tab-caption">
+                        {tabCaption.toUpperCase()}
+                      </div>
+                    </div>
+
+                    {/* Toolbar DAY */}
+                    {activeTab === "day" && (
+                      <div className="toolbar-row">
+                        <div className="toolbar-group">
+                          <span className="toolbar-label">DAY:</span>
+                          <input
+                            type="date"
+                            className="toolbar-select"
+                            value={dayFilter}
+                            onChange={(e) => setDayFilter(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Toolbar MONTH */}
+                    {activeTab === "month" && (
+                      <div className="toolbar-row">
+                        <div className="toolbar-group">
+                          <span className="toolbar-label">MONTH:</span>
+                          <select
+                            className="toolbar-select"
+                            value={monthFilter}
+                            onChange={(e) => setMonthFilter(e.target.value)}
+                          >
+                            {[...Array(12)].map((_, i) => (
+                              <option key={i + 1} value={i + 1}>
+                                {i + 1}
                               </option>
-                            );
-                          })}
-                        </select>
-                      </div>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div className="toolbar-group">
-                        <span className="toolbar-label">DATA:</span>
-                        <select
-                          className="toolbar-select"
-                          value={selectedMetric}
-                          onChange={(e) => setSelectedMetric(e.target.value)}
-                        >
-                          <option value="ALL">All</option>
-                          <option value="OEE RATIO">OEE Ratio</option>
-                          <option value="OK PRODUCT RATIO">
-                            OK Product ratio
-                          </option>
-                          <option value="OUTPUT RATIO">Output Ratio</option>
-                          <option value="ACTIVITY RATIO">
-                            Activity Ratio
-                          </option>
-                        </select>
-                      </div>
+                        <div className="toolbar-group">
+                          <span className="toolbar-label">DATA:</span>
+                          <select
+                            className="toolbar-select"
+                            value={selectedMetric}
+                            onChange={(e) => setSelectedMetric(e.target.value)}
+                          >
+                            <option value="ALL">All</option>
+                            <option value="OEE RATIO">OEE Ratio</option>
+                            <option value="OK PRODUCT RATIO">
+                              OK Product ratio
+                            </option>
+                            <option value="OUTPUT RATIO">Output Ratio</option>
+                            <option value="ACTIVITY RATIO">
+                              Activity Ratio
+                            </option>
+                          </select>
+                        </div>
 
-                      <div className="toolbar-actions">
-                        <button
-                          className="toolbar-btn export"
-                          onClick={handleExportYear}
-                        >
-                          Export Excel
-                        </button>
+                        <div className="toolbar-actions">
+                          <button
+                            className="toolbar-btn export"
+                            onClick={handleExportMonth}
+                          >
+                            Export Excel
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {/* Toolbar YEAR */}
+                    {activeTab === "year" && (
+                      <div className="toolbar-row">
+                        <div className="toolbar-group">
+                          <span className="toolbar-label">YEAR:</span>
+                          <select
+                            className="toolbar-select"
+                            value={yearFilter}
+                            onChange={(e) => setYearFilter(e.target.value)}
+                          >
+                            {Array.from({ length: 8 }).map((_, idx) => {
+                              const y = 2022 + idx;
+                              return (
+                                <option key={y} value={y}>
+                                  {y}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+
+                        <div className="toolbar-group">
+                          <span className="toolbar-label">DATA:</span>
+                          <select
+                            className="toolbar-select"
+                            value={selectedMetric}
+                            onChange={(e) => setSelectedMetric(e.target.value)}
+                          >
+                            <option value="ALL">All</option>
+                            <option value="OEE RATIO">OEE Ratio</option>
+                            <option value="OK PRODUCT RATIO">
+                              OK Product ratio
+                            </option>
+                            <option value="OUTPUT RATIO">Output Ratio</option>
+                            <option value="ACTIVITY RATIO">
+                              Activity Ratio
+                            </option>
+                          </select>
+                        </div>
+
+                        <div className="toolbar-actions">
+                          <button
+                            className="toolbar-btn export"
+                            onClick={handleExportYear}
+                          >
+                            Export Excel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Nội dung theo tab */}
                   <div className="popup-content-box">

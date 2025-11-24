@@ -1,44 +1,49 @@
-/* Trang Overview của máy - đã chỉnh sửa để tràn full width */
+/* Trang Overview của máy - full width, phong cách dashboard hiện đại */
 
 .machine-page {
-  width: 100%;              /* ⭐ cần thiết để tràn hết vùng main */
+  width: 100%;
   height: 100%;
-  min-height: 100vh;
-
+  min-height: 50vh;
   display: flex;
   flex-direction: column;
-
-  /* bỏ padding để không bị thu nhỏ */
   padding: 0;
-
   background: #f3f4f6;
   box-sizing: border-box;
-
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Bọc phần nội dung thực sự để tạo padding đẹp hơn */
+/* Bọc phần nội dung để tạo padding đẹp với nền xám phía ngoài */
+.machine-page-container {
+  width: 100%;
+}
+
 .machine-page-content-wrapper {
-  padding: 16px 20px;       /* ⭐ padding chỉ nằm ở phần content, không nằm ở layout */
+  padding: 16px 20px;
   flex: 1;
   box-sizing: border-box;
 }
 
+/* ========== HEADER ========== */
+
 .machine-page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
 
-  margin-bottom: 12px;
-  gap: 12px;
+  margin: 10px 0 14px;
+  padding: 14px 18px;
 
-  padding: 16px 20px;       /* ⭐ thêm padding riêng cho header */
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: radial-gradient(circle at 0% 0%, #e5f0ff 0, #f9fafb 40%, #ffffff 100%);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
 }
 
 .machine-page-header-left {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .back-btn {
@@ -48,6 +53,10 @@
   background: #ffffff;
   cursor: pointer;
   font-size: 13px;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .back-btn:hover {
@@ -55,7 +64,7 @@
 }
 
 .machine-page-title {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 20px;
   font-weight: 700;
   color: #111827;
@@ -66,10 +75,45 @@
   color: #6b7280;
 }
 
+.machine-page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.machine-chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff88;
+  color: #374151;
+}
+
+.machine-page-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.machine-status-pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #111827;
+  color: #f9fafb;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ========== KHỐI NỘI DUNG CHÍNH ========== */
+
 .machine-page-content {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 14px 16px 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 
   flex: 1;
@@ -77,6 +121,135 @@
   flex-direction: column;
   min-height: 0;
 }
+
+/* ====== Tabs + toolbar gọn, nằm cùng header nhỏ ====== */
+
+.machine-page-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* Tabs */
+
+.machine-page .popup-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.machine-tab-list {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  gap: 4px;
+}
+
+.machine-page .popup-tab-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.machine-page .popup-tab-btn.active {
+  background: #111827;
+  color: #f9fafb;
+}
+
+/* Text nhỏ bên phải tabs (vd. hiển thị “Theo ngày / tháng / năm”) */
+
+.machine-tab-caption {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Toolbar */
+
+.machine-page .toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 0 2px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.toolbar-select {
+  min-width: 130px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  color: #111827;
+  background: #f9fafb;
+}
+
+.toolbar-select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+}
+
+.toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toolbar-btn.export {
+  border-color: #2563eb;
+  background: #111827;
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+.toolbar-btn.export:hover {
+  background: #2563eb;
+}
+
+/* Vùng hiển thị chart + bảng trong từng tab */
+
+.popup-content-box {
+  margin-top: 8px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Trường hợp không có máy */
 
 .machine-page-empty {
   margin-top: 20px;

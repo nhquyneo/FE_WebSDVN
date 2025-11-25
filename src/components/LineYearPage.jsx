@@ -1,4 +1,3 @@
-// src/components/MachineYearPage.jsx
 import { useEffect, useState, useMemo } from "react";
 import {
   ResponsiveContainer,
@@ -12,11 +11,11 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { fetchMachineYearRatio, fetchMachineYear } from "../api";
+import { fetchLineYearRatio, fetchLineYear } from "../api";
 
 /**
  * Props:
- *  - machine: { id, name }
+ *  - line: { id, name }
  *  - year: số năm (vd: 2025)
  *  - dataType:
  *      'ALL'
@@ -25,7 +24,7 @@ import { fetchMachineYearRatio, fetchMachineYear } from "../api";
  *      'OUTPUT RATIO'
  *      'ACTIVITY RATIO'
  */
-export default function MachineYearPage({ machine, year, dataType }) {
+export default function LineYearPage({ line, year, dataType }) {
   const [ratioMonths, setRatioMonths] = useState([]);
   const [timeMonths, setTimeMonths] = useState([]);
   const [loadingRatio, setLoadingRatio] = useState(false);
@@ -35,7 +34,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
 
   // ------------- LOAD RATIO (phụ thuộc cả dataType) -------------
   useEffect(() => {
-    if (!machine || !year) return;
+    if (!line || !year) return;
 
     let isCancelled = false;
 
@@ -44,17 +43,13 @@ export default function MachineYearPage({ machine, year, dataType }) {
         setLoadingRatio(true);
         setErrorRatio("");
 
-        const data = await fetchMachineYearRatio(
-          machine.id,
-          year,
-          dataType
-        );
+        const data = await fetchLineYearRatio(line.id, year, dataType);
         if (isCancelled) return;
         setRatioMonths(data.months || []);
       } catch (err) {
-        console.error("Lỗi load ratio năm:", err);
+        console.error("Lỗi load ratio năm (line):", err);
         if (!isCancelled) {
-          setErrorRatio("Không tải được dữ liệu ratio theo năm");
+          setErrorRatio("Không tải được dữ liệu ratio theo năm (line)");
         }
       } finally {
         if (!isCancelled) setLoadingRatio(false);
@@ -66,11 +61,11 @@ export default function MachineYearPage({ machine, year, dataType }) {
     return () => {
       isCancelled = true;
     };
-  }, [machine, year, dataType]);
+  }, [line, year, dataType]);
 
-  // ------------- LOAD TIME (lỗi) – chỉ phụ thuộc machine + year -------------
+  // ------------- LOAD TIME (thời gian) – chỉ phụ thuộc line + year -------------
   useEffect(() => {
-    if (!machine || !year) return;
+    if (!line || !year) return;
 
     let isCancelled = false;
 
@@ -79,13 +74,13 @@ export default function MachineYearPage({ machine, year, dataType }) {
         setLoadingTime(true);
         setErrorTime("");
 
-        const data = await fetchMachineYear(machine.id, year);
+        const data = await fetchLineYear(line.id, year);
         if (isCancelled) return;
         setTimeMonths(data.months || []);
       } catch (err) {
-        console.error("Lỗi load time năm:", err);
+        console.error("Lỗi load time năm (line):", err);
         if (!isCancelled) {
-          setErrorTime("Không tải được dữ liệu thời gian theo năm");
+          setErrorTime("Không tải được dữ liệu thời gian theo năm (line)");
         }
       } finally {
         if (!isCancelled) setLoadingTime(false);
@@ -97,16 +92,16 @@ export default function MachineYearPage({ machine, year, dataType }) {
     return () => {
       isCancelled = true;
     };
-  }, [machine, year]);
+  }, [line, year]);
 
   const yearLabel = `Năm ${year || ""}`;
   const normalizedType = (dataType || "ALL").toUpperCase().trim();
+  const showOverlay = (loadingRatio || loadingTime) && line && year;
 
   // ------------- MAP RATIO CHO LINE CHART (useMemo) -------------
   const ratioChartData = useMemo(
     () =>
       ratioMonths.map((m) => {
-        // backend nên trả m.month = 1..12
         const monthNumber = Number(m.month) || 0;
 
         return {
@@ -147,7 +142,6 @@ export default function MachineYearPage({ machine, year, dataType }) {
   const selectedLine = !isAll
     ? lineMap[normalizedType] || lineMap["OEE RATIO"]
     : null;
-
 
   const hasRatioData = ratioChartData.length > 0;
 
@@ -217,10 +211,9 @@ export default function MachineYearPage({ machine, year, dataType }) {
   }, [timeMonths]);
 
   const hasStackData = stackChartData.length > 0;
-  const showOverlay = (loadingRatio || loadingTime) && machine && year;
 
   // ❗ Hook xong mới early-return
-  if (!machine || !year) {
+  if (!line || !year) {
     return null;
   }
 
@@ -274,12 +267,10 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 animation: "spin 0.8s linear infinite",
               }}
             />
-            Đang tải dữ liệu...
+            Đang tải dữ liệu line...
           </div>
         </div>
       )}
-
-      
 
       {/* BIỂU ĐỒ LINE – RATIO THEO THÁNG */}
       <div
@@ -300,8 +291,8 @@ export default function MachineYearPage({ machine, year, dataType }) {
 
         <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600 }}>
           {isAll
-            ? `OEE / OK Product / Output / Activity theo các tháng trong ${yearLabel}`
-            : `${selectedLine.label} theo các tháng trong ${yearLabel}`}
+            ? `OEE / OK Product / Output / Activity theo các tháng trong ${yearLabel} (Line)`
+            : `${selectedLine.label} theo các tháng trong ${yearLabel} (Line)`}
         </div>
 
         {hasRatioData ? (
@@ -391,7 +382,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 fontSize: 13,
               }}
             >
-              Không có dữ liệu ratio cho năm này.
+              Không có dữ liệu ratio cho năm này (line).
             </p>
           )
         )}
@@ -415,7 +406,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
         )}
 
         <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600 }}>
-          Biểu đồ cột chồng – tỷ lệ (%) phân bổ thời gian theo tháng
+          Biểu đồ cột chồng – tỷ lệ (%) phân bổ thời gian theo tháng (Line)
         </div>
 
         {hasStackData ? (
@@ -513,7 +504,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 fontSize: 13,
               }}
             >
-              Không có dữ liệu thời gian cho năm này.
+              Không có dữ liệu thời gian cho năm này (line).
             </p>
           )
         )}

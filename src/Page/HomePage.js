@@ -2,6 +2,7 @@
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { linename, getMachinesByLine } from "../api";
+import LinePage from "../pages/LinePage";
 
 // page con
 import OverviewPage from "../pages/Overview";

@@ -1,4 +1,4 @@
-// src/components/MachineDayPage.jsx
+// src/components/LineDayPage.jsx
 import { useEffect, useState } from "react";
 import {
   PieChart,
@@ -9,9 +9,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import * as XLSX from "xlsx";
-import { fetchMachineDay } from "../api";
+import { fetchLineDay } from "../api";
 
-export default function MachineDayPage({ machine, day }) {
+export default function LineDayPage({ line, day }) {
   const [pieData, setPieData] = useState([]);
   const [detailRows, setDetailRows] = useState([]);
   const [powerRun, setPowerRun] = useState("");
@@ -20,29 +20,31 @@ export default function MachineDayPage({ machine, day }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const showOverlay = loading && day;
+
   const color_map = {
-    Operation:          "#00a03e",
-    SmallStop:          "#f97316",
-    Fault:              "#ef4444",
-    Break:              "#eab308",
-    Maintenance:        "#6b21a8",
-    Eat:                "#22c55e",
-    Waiting:            "#0ea5e9",
-    MachineryEdit:      "#1d4ed8",
-    ChangeProductCode:  "#a855f7",
+    Operation: "#00a03e",
+    SmallStop: "#f97316",
+    Fault: "#ef4444",
+    Break: "#eab308",
+    Maintenance: "#6b21a8",
+    Eat: "#22c55e",
+    Waiting: "#0ea5e9",
+    MachineryEdit: "#1d4ed8",
+    ChangeProductCode: "#a855f7",
     Glue_CleaningPaper: "#fb7185",
-    Others:             "#6b7280",
+    Others: "#6b7280",
   };
+
   useEffect(() => {
-    if (!machine || !day) return;
+    if (!line || !day) return;
 
     async function loadData() {
       try {
         setLoading(true);
         setError("");
 
-        const data = await fetchMachineDay(machine.id, day);
-        console.log("MachineDay API data:", data);
+        const data = await fetchLineDay(line.id, day);
+        console.log("LineDay API data:", data);
 
         if (!data || !Array.isArray(data.pie)) {
           setPieData([]);
@@ -60,7 +62,7 @@ export default function MachineDayPage({ machine, day }) {
           setProductInfo(data.product || null);
         }
       } catch (err) {
-        console.error("Lỗi load dữ liệu máy theo ngày:", err);
+        console.error("Lỗi load dữ liệu line theo ngày:", err);
         setError("Không tải được dữ liệu từ server");
       } finally {
         setLoading(false);
@@ -68,32 +70,21 @@ export default function MachineDayPage({ machine, day }) {
     }
 
     loadData();
-  }, [machine, day]);
+  }, [line, day]);
 
-  if (!machine || !day) return null;
+  if (!line || !day) return null;
 
-  // ✅ HÀM EXPORT RA FILE EXCEL .xlsx
   const handleExportExcel = () => {
     if (!detailRows.length && !productInfo) {
       alert("Không có dữ liệu để xuất.");
       return;
     }
-    
+
     const wsData = [];
 
-    // Thông tin chung
-    // wsData.push(["Máy", `${machine.name} (ID: ${machine.id})`]);
-    // wsData.push(["Ngày", day]);
-    // if (totalHours !== null) {
-    //   wsData.push(["Tổng thời gian (giờ)", totalHours]);
-    // }
-    // if (powerRun) {
-    //   wsData.push(["Power Run", powerRun]);
-    // }
     wsData.push([]); // dòng trống
 
-    // BẢNG THỜI GIAN
-    wsData.push(["BẢNG THỜI GIAN"]);
+    wsData.push(["BẢNG THỜI GIAN - LINE"]);
     wsData.push(["Loại dữ liệu", "Giờ", "Thời gian", "Tỷ lệ (%)"]);
 
     detailRows.forEach((row) => {
@@ -105,9 +96,7 @@ export default function MachineDayPage({ machine, day }) {
       ]);
     });
 
-    wsData.push([]); // dòng trống
-
-    // BẢNG PRODUCT
+    wsData.push([]);
     wsData.push(["PRODUCT"]);
     wsData.push(["TOTAL", "OK", "NG", "RATIO (%)"]);
     if (productInfo) {
@@ -119,12 +108,10 @@ export default function MachineDayPage({ machine, day }) {
       ]);
     }
 
-    // Tạo workbook & sheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "DayData");
+    XLSX.utils.book_append_sheet(wb, ws, "LineDayData");
 
-    // Ghi ra buffer + tải xuống
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([wbout], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -133,7 +120,7 @@ export default function MachineDayPage({ machine, day }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `machine_${machine.id}_${day}_daydata.xlsx`;
+    link.download = `line_${line.id}_${day}_daydata.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -148,50 +135,52 @@ export default function MachineDayPage({ machine, day }) {
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
       }}
     >
       {showOverlay && (
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(255,255,255,0.6)",
-          zIndex: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backdropFilter: "blur(2px)",
-        }}
-      >
         <div
           style={{
-            padding: "10px 18px",
-            borderRadius: 999,
-            background: "#111827",
-            color: "#ffffff",
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
+            position: "absolute",
+            inset: 0,
+            background: "rgba(255,255,255,0.6)",
+            zIndex: 20,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            justifyContent: "center",
+            backdropFilter: "blur(2px)",
           }}
         >
-          <span
+          <div
             style={{
-              width: 14,
-              height: 14,
-              borderRadius: "50%",
-              border: "2px solid #ffffff",
-              borderTopColor: "transparent",
-              animation: "spin 0.8s linear infinite",
+              padding: "10px 18px",
+              borderRadius: 999,
+              background: "#111827",
+              color: "#ffffff",
+              fontSize: 13,
+              fontWeight: 600,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
-          />
-          Đang tải dữ liệu...
+          >
+            <span
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                border: "2px solid #ffffff",
+                borderTopColor: "transparent",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+            Đang tải dữ liệu line...
+          </div>
         </div>
-      </div>
-    )}
-      {/* HÀNG TIÊU ĐỀ + NÚT EXPORT */}
+      )}
+
+      {/* HÀNG NÚT EXPORT */}
       <div
         style={{
           display: "flex",
@@ -200,25 +189,6 @@ export default function MachineDayPage({ machine, day }) {
           gap: 8,
         }}
       >
-        {/* <div style={{ flex: 1 }}>
-          <h4 style={{ margin: "0 0 2px" }}>Dữ liệu theo ngày</h4>
-          <p style={{ margin: 0, fontSize: 13 }}>
-            Máy: <b>{machine.name}</b> (ID: {machine.id}) &nbsp;|&nbsp; Ngày:{" "}
-            <b>{day}</b>
-          </p>
-          {totalHours !== null && (
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#4b5563" }}>
-              Tổng thời gian: <b>{totalHours}</b> giờ
-              {powerRun && (
-                <>
-                  {" "}
-                  &nbsp;|&nbsp; Power Run: <b>{powerRun}</b>
-                </>
-              )}
-            </p>
-          )}
-        </div> */}
-
         <button
           onClick={handleExportExcel}
           style={{
@@ -230,7 +200,7 @@ export default function MachineDayPage({ machine, day }) {
             fontSize: 12,
             cursor: "pointer",
             whiteSpace: "nowrap",
-            marginLeft:"auto"
+            marginLeft: "auto",
           }}
         >
           ⬇ Xuất Excel
@@ -250,7 +220,6 @@ export default function MachineDayPage({ machine, day }) {
           gridTemplateColumns: "1fr 1.4fr",
           gap: 16,
           width: "100%",
-          // flex: 1,
           minHeight: 0,
         }}
       >
@@ -292,7 +261,7 @@ export default function MachineDayPage({ machine, day }) {
           </div>
         </div>
 
-        {/* BẢNG LEGEND + THỜI GIAN + % */}
+        {/* BẢNG LEGEND */}
         <div
           style={{
             borderRadius: 8,
@@ -309,7 +278,7 @@ export default function MachineDayPage({ machine, day }) {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: 20,
+                fontSize: 20, // giống MachineDayPage
               }}
             >
               <thead>
@@ -400,84 +369,81 @@ export default function MachineDayPage({ machine, day }) {
                     </td>
                   </tr>
                 ))}
-              {detailRows.length === 0 &&
-  [
-    "Operation",
-    "SmallStop",
-    "Fault",
-    "Break",
-    "Maintenance",
-    "Eat",
-    "Waiting",
-    "MachineryEdit",
-    "ChangeProductCode",
-    "Glue_CleaningPaper",
-    "Others",
-  ].map((label, idx) => {
-    const color = color_map[label] || "#6b7280";
 
-    return (
-      <tr key={idx}>
-        <td
-          style={{
-            padding: "3px 6px",
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-block",
-              width: 14,
-              height: 14,
-              borderRadius: 3,
-              backgroundColor: color,
-            }}
-          />
-        </td>
-
-        <td
-          style={{
-            padding: "3px 6px",
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        >
-          {label}
-        </td>
-
-        <td
-          style={{
-            padding: "3px 6px",
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        >
-          0h 0m
-        </td>
-
-        <td
-          style={{
-            padding: "3px 6px",
-            borderBottom: "1px solid #e5e7eb",
-            textAlign: "right",
-          }}
-        >
-          0.0%
-        </td>
-      </tr>
-    );
-  })}
+                {detailRows.length === 0 &&
+                  [
+                    "Operation",
+                    "SmallStop",
+                    "Fault",
+                    "Break",
+                    "Maintenance",
+                    "Eat",
+                    "Waiting",
+                    "MachineryEdit",
+                    "ChangeProductCode",
+                    "Glue_CleaningPaper",
+                    "Others",
+                  ].map((label, idx) => {
+                    const color = color_map[label] || "#6b7280";
+                    return (
+                      <tr key={idx}>
+                        <td
+                          style={{
+                            padding: "3px 6px",
+                            borderBottom: "1px solid #e5e7eb",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: 14,
+                              height: 14,
+                              borderRadius: 3,
+                              backgroundColor: color,
+                            }}
+                          />
+                        </td>
+                        <td
+                          style={{
+                            padding: "3px 6px",
+                            borderBottom: "1px solid #e5e7eb",
+                          }}
+                        >
+                          {label}
+                        </td>
+                        <td
+                          style={{
+                            padding: "3px 6px",
+                            borderBottom: "1px solid #e5e7eb",
+                          }}
+                        >
+                          0h 0m
+                        </td>
+                        <td
+                          style={{
+                            padding: "3px 6px",
+                            borderBottom: "1px solid #e5e7eb",
+                            textAlign: "right",
+                          }}
+                        >
+                          0.0%
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
 
           {powerRun && (
-            <div style={{ marginTop:10, fontSize: 20 }}>
+            <div style={{ marginTop: 10, fontSize: 20 }}>
               <b>Power Run:</b> {powerRun}
             </div>
           )}
         </div>
       </div>
 
-      {/* HÀNG DƯỚI – PRODUCT */}
+      {/* PRODUCT */}
       <div
         style={{
           marginTop: 12,
@@ -500,7 +466,7 @@ export default function MachineDayPage({ machine, day }) {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: 20,
+                fontSize: 20, // giống MachineDayPage
               }}
             >
               <thead>
@@ -550,73 +516,71 @@ export default function MachineDayPage({ machine, day }) {
                       fontWeight: 700,
                     }}
                   >
-                    {productInfo.ratio_text || `${productInfo.ratio ?? 0}%`}
+                    {productInfo.ratio_text ||
+                      `${productInfo.ratio ?? 0}%`}
                   </td>
                 </tr>
               </tbody>
             </table>
           ) : (
+            // default nếu chưa có
             <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: 20,
-            }}
-          >
-            <thead>
-              <tr>
-                <th
-                  colSpan={8}
-                  style={{
-                    borderBottom: "1px solid #d1d5db",
-                    padding: "4px 6px",
-                    textAlign: "left",
-                  }}
-                >
-                  PRODUCT
-                </th>
-              </tr>
-            </thead>
-        
-            <tbody>
-              <tr>
-                <td style={{ padding: "4px 6px" }}>TOTAL</td>
-                <td style={{ padding: "4px 6px", fontWeight: 600 }}>0</td>
-        
-                <td style={{ padding: "4px 6px" }}>OK</td>
-                <td
-                  style={{
-                    padding: "4px 6px",
-                    color: "#16a34a",
-                    fontWeight: 700,
-                  }}
-                >
-                  0
-                </td>
-        
-                <td style={{ padding: "4px 6px" }}>NG</td>
-                <td
-                  style={{
-                    padding: "4px 6px",
-                    color: "#ef4444",
-                    fontWeight: 700,
-                  }}
-                >
-                  0
-                </td>
-        
-                <td style={{ padding: "4px 6px" }}>RATIO</td>
-                <td
-                  style={{
-                    padding: "4px 6px",
-                    fontWeight: 700,
-                  }}
-                >
-                  0%
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: 20,
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    colSpan={8}
+                    style={{
+                      borderBottom: "1px solid #d1d5db",
+                      padding: "4px 6px",
+                      textAlign: "left",
+                    }}
+                  >
+                    PRODUCT
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ padding: "4px 6px" }}>TOTAL</td>
+                  <td style={{ padding: "4px 6px", fontWeight: 600 }}>0</td>
+                  <td style={{ padding: "4px 6px" }}>OK</td>
+                  <td
+                    style={{
+                      padding: "4px 6px",
+                      color: "#16a34a",
+                      fontWeight: 700,
+                    }}
+                  >
+                    0
+                  </td>
+                  <td style={{ padding: "4px 6px" }}>NG</td>
+                  <td
+                    style={{
+                      padding: "4px 6px",
+                      color: "#ef4444",
+                      fontWeight: 700,
+                    }}
+                  >
+                    0
+                  </td>
+                  <td style={{ padding: "4px 6px" }}>RATIO</td>
+                  <td
+                    style={{
+                      padding: "4px 6px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    0%
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           )}
         </div>
       </div>

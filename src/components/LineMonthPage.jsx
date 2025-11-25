@@ -1,4 +1,3 @@
-// src/components/MachineYearPage.jsx
 import { useEffect, useState, useMemo } from "react";
 import {
   ResponsiveContainer,
@@ -12,12 +11,12 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { fetchMachineYearRatio, fetchMachineYear } from "../api";
+import { fetchLineMonthRatio, fetchLineMonth } from "../api";
 
 /**
  * Props:
- *  - machine: { id, name }
- *  - year: số năm (vd: 2025)
+ *  - line: { id, name }
+ *  - month: số tháng 1..12
  *  - dataType:
  *      'ALL'
  *      'OEE RATIO'
@@ -25,9 +24,9 @@ import { fetchMachineYearRatio, fetchMachineYear } from "../api";
  *      'OUTPUT RATIO'
  *      'ACTIVITY RATIO'
  */
-export default function MachineYearPage({ machine, year, dataType }) {
-  const [ratioMonths, setRatioMonths] = useState([]);
-  const [timeMonths, setTimeMonths] = useState([]);
+export default function LineMonthPage({ line, month, dataType }) {
+  const [ratioDays, setRatioDays] = useState([]);
+  const [timeDays, setTimeDays] = useState([]);
   const [loadingRatio, setLoadingRatio] = useState(false);
   const [loadingTime, setLoadingTime] = useState(false);
   const [errorRatio, setErrorRatio] = useState("");
@@ -35,7 +34,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
 
   // ------------- LOAD RATIO (phụ thuộc cả dataType) -------------
   useEffect(() => {
-    if (!machine || !year) return;
+    if (!line || !month) return;
 
     let isCancelled = false;
 
@@ -44,17 +43,13 @@ export default function MachineYearPage({ machine, year, dataType }) {
         setLoadingRatio(true);
         setErrorRatio("");
 
-        const data = await fetchMachineYearRatio(
-          machine.id,
-          year,
-          dataType
-        );
+        const data = await fetchLineMonthRatio(line.id, month, dataType);
         if (isCancelled) return;
-        setRatioMonths(data.months || []);
+        setRatioDays(data.days || []);
       } catch (err) {
-        console.error("Lỗi load ratio năm:", err);
+        console.error("Lỗi load ratio tháng (line):", err);
         if (!isCancelled) {
-          setErrorRatio("Không tải được dữ liệu ratio theo năm");
+          setErrorRatio("Không tải được dữ liệu ratio theo tháng (line)");
         }
       } finally {
         if (!isCancelled) setLoadingRatio(false);
@@ -66,11 +61,11 @@ export default function MachineYearPage({ machine, year, dataType }) {
     return () => {
       isCancelled = true;
     };
-  }, [machine, year, dataType]);
+  }, [line, month, dataType]);
 
-  // ------------- LOAD TIME (lỗi) – chỉ phụ thuộc machine + year -------------
+  // ------------- LOAD TIME (thời gian) – chỉ phụ thuộc line + month -------------
   useEffect(() => {
-    if (!machine || !year) return;
+    if (!line || !month) return;
 
     let isCancelled = false;
 
@@ -79,13 +74,13 @@ export default function MachineYearPage({ machine, year, dataType }) {
         setLoadingTime(true);
         setErrorTime("");
 
-        const data = await fetchMachineYear(machine.id, year);
+        const data = await fetchLineMonth(line.id, month);
         if (isCancelled) return;
-        setTimeMonths(data.months || []);
+        setTimeDays(data.days || []);
       } catch (err) {
-        console.error("Lỗi load time năm:", err);
+        console.error("Lỗi load time tháng (line):", err);
         if (!isCancelled) {
-          setErrorTime("Không tải được dữ liệu thời gian theo năm");
+          setErrorTime("Không tải được dữ liệu thời gian theo tháng (line)");
         }
       } finally {
         if (!isCancelled) setLoadingTime(false);
@@ -97,27 +92,28 @@ export default function MachineYearPage({ machine, year, dataType }) {
     return () => {
       isCancelled = true;
     };
-  }, [machine, year]);
+  }, [line, month]);
 
-  const yearLabel = `Năm ${year || ""}`;
+  const monthLabel = `Tháng ${String(month || "").padStart(2, "0")}`;
   const normalizedType = (dataType || "ALL").toUpperCase().trim();
+  const showOverlay = (loadingRatio || loadingTime) && line && month;
 
   // ------------- MAP RATIO CHO LINE CHART (useMemo) -------------
   const ratioChartData = useMemo(
     () =>
-      ratioMonths.map((m) => {
-        // backend nên trả m.month = 1..12
-        const monthNumber = Number(m.month) || 0;
+      ratioDays.map((d) => {
+        let dayNumber = parseInt(String(d.day).slice(-2), 10);
+        if (Number.isNaN(dayNumber)) dayNumber = d.day;
 
         return {
-          month: monthNumber,
-          OEE: m.oee ?? 0,
-          OKPRODUCT: m.ok_ratio ?? 0,
-          OUTPUT: m.output_ratio ?? 0,
-          ACTIVITY: m.activity_ratio ?? 0,
+          day: dayNumber,
+          OEE: d.oee ?? 0,
+          OKPRODUCT: d.ok_ratio ?? 0,
+          OUTPUT: d.output_ratio ?? 0,
+          ACTIVITY: d.activity_ratio ?? 0,
         };
       }),
-    [ratioMonths]
+    [ratioDays]
   );
 
   const lineMap = {
@@ -148,13 +144,16 @@ export default function MachineYearPage({ machine, year, dataType }) {
     ? lineMap[normalizedType] || lineMap["OEE RATIO"]
     : null;
 
+  const dataLabel = isAll
+    ? "All (OEE, OK Product, Output, Activity)"
+    : selectedLine.label;
 
   const hasRatioData = ratioChartData.length > 0;
 
   // ------------- MAP TIME CHO STACKED BAR (useMemo, fix tổng 100%) -------------
   const stackChartData = useMemo(() => {
-    return timeMonths.map((m) => {
-      const c = m.categories || {};
+    return timeDays.map((d) => {
+      const c = d.categories || {};
 
       const keys = [
         "Operation",
@@ -197,10 +196,11 @@ export default function MachineYearPage({ machine, year, dataType }) {
         percentInts = adjusted;
       }
 
-      const monthNumber = Number(m.month) || 0;
+      let dayNumber = parseInt(String(d.day).slice(-2), 10);
+      if (Number.isNaN(dayNumber)) dayNumber = d.day;
 
       return {
-        month: monthNumber,
+        day: dayNumber,
         OperationP: percentInts[0],
         SmallStopP: percentInts[1],
         FaultP: percentInts[2],
@@ -214,13 +214,12 @@ export default function MachineYearPage({ machine, year, dataType }) {
         OthersP: percentInts[10],
       };
     });
-  }, [timeMonths]);
+  }, [timeDays]);
 
   const hasStackData = stackChartData.length > 0;
-  const showOverlay = (loadingRatio || loadingTime) && machine && year;
 
   // ❗ Hook xong mới early-return
-  if (!machine || !year) {
+  if (!line || !month) {
     return null;
   }
 
@@ -236,7 +235,6 @@ export default function MachineYearPage({ machine, year, dataType }) {
         position: "relative",
       }}
     >
-      {/* OVERLAY ĐANG LOAD */}
       {showOverlay && (
         <div
           style={{
@@ -274,14 +272,12 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 animation: "spin 0.8s linear infinite",
               }}
             />
-            Đang tải dữ liệu...
+            Đang tải dữ liệu line...
           </div>
         </div>
       )}
 
-      
-
-      {/* BIỂU ĐỒ LINE – RATIO THEO THÁNG */}
+      {/* BIỂU ĐỒ LINE – RATIO */}
       <div
         style={{
           flex: 1,
@@ -292,6 +288,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
           minHeight: 0,
         }}
       >
+        {loadingRatio && <p>Đang tải dữ liệu ratio...</p>}
         {errorRatio && (
           <p style={{ color: "red", marginTop: 4, marginBottom: 4 }}>
             {errorRatio}
@@ -300,8 +297,8 @@ export default function MachineYearPage({ machine, year, dataType }) {
 
         <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600 }}>
           {isAll
-            ? `OEE / OK Product / Output / Activity theo các tháng trong ${yearLabel}`
-            : `${selectedLine.label} theo các tháng trong ${yearLabel}`}
+            ? `OEE / OK Product / Output / Activity theo ngày trong ${monthLabel} (Line)`
+            : `${selectedLine.label} theo ngày trong ${monthLabel} (Line)`}
         </div>
 
         {hasRatioData ? (
@@ -309,20 +306,16 @@ export default function MachineYearPage({ machine, year, dataType }) {
             <LineChart data={ratioChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="month"
+                dataKey="day"
                 label={{
-                  value: "Months",
+                  value: "Days",
                   position: "insideBottomRight",
                   offset: -4,
                 }}
               />
               <YAxis
                 domain={[0, 120]}
-                label={{
-                  value: "Ratio",
-                  angle: -90,
-                  position: "insideLeft",
-                }}
+                label={{ value: "Ratio", angle: -90, position: "insideLeft" }}
               />
               <Tooltip />
               <Legend />
@@ -391,13 +384,13 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 fontSize: 13,
               }}
             >
-              Không có dữ liệu ratio cho năm này.
+              Không có dữ liệu ratio cho tháng này (line).
             </p>
           )
         )}
       </div>
 
-      {/* BIỂU ĐỒ CỘT CHỒNG – PHÂN BỔ THỜI GIAN THEO THÁNG */}
+      {/* BIỂU ĐỒ CỘT CHỒNG – PHÂN BỔ THỜI GIAN */}
       <div
         style={{
           flex: 1,
@@ -408,6 +401,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
           minHeight: 0,
         }}
       >
+        {loadingTime && <p>Đang tải dữ liệu thời gian...</p>}
         {errorTime && (
           <p style={{ color: "red", marginTop: 4, marginBottom: 4 }}>
             {errorTime}
@@ -415,7 +409,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
         )}
 
         <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600 }}>
-          Biểu đồ cột chồng – tỷ lệ (%) phân bổ thời gian theo tháng
+          Biểu đồ cột chồng – tỷ lệ (%) phân bổ thời gian theo ngày (Line)
         </div>
 
         {hasStackData ? (
@@ -423,9 +417,9 @@ export default function MachineYearPage({ machine, year, dataType }) {
             <BarChart data={stackChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="month"
+                dataKey="day"
                 label={{
-                  value: "Months",
+                  value: "Days",
                   position: "insideBottomRight",
                   offset: -4,
                 }}
@@ -513,7 +507,7 @@ export default function MachineYearPage({ machine, year, dataType }) {
                 fontSize: 13,
               }}
             >
-              Không có dữ liệu thời gian cho năm này.
+              Không có dữ liệu thời gian cho tháng này (line).
             </p>
           )
         )}

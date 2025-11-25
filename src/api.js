@@ -131,6 +131,96 @@ export async function fetchMachineYear(machineId, year) {
   const data = await res.json();
   return data; // { days: [ { day, categories: { ... } } ], monthly_totals: ... }
 }
+//Quý
+// ----- LINE DAY -----
+export async function fetchLineDay(lineId, day) {
+  const url = `${API_BASE}/api/lines/${lineId}/day?day=${encodeURIComponent(day)}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+}
+
+// ----- LINE MONTH RATIO -----
+export async function fetchLineMonthRatio(lineId, month, dataType) {
+  const params = new URLSearchParams();
+  params.set("month", month);
+  if (dataType) params.set("data", dataType);
+
+  const url = `${API_BASE}/api/lines/${lineId}/month-ratio?${params.toString()}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return await res.json();
+}
+
+// ----- LINE MONTH TIME -----
+export async function fetchLineMonth(lineId, month) {
+  const url = `${API_BASE}/api/lines/${lineId}/month?month=${month}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return await res.json();
+}
+
+export async function fetchLineYearRatio(lineId, year, dataType) {
+  const params = new URLSearchParams();
+  params.set("year", year);
+  if (dataType) {
+    params.set("data", dataType);
+  }
+
+  const url = `${API_BASE}/api/lines/${lineId}/year-ratio?${params.toString()}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return await res.json(); // { line_id, year, months: [...] }
+}
+
+export async function fetchLineYear(lineId, year) {
+  const url = `${API_BASE}/api/lines/${lineId}/year?year=${year}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return await res.json(); // { line_id, year, months: [...] }
+}
+//
 export async function getLineKpi(lineName, month, year, data) {
   const params = new URLSearchParams({
     line: lineName,

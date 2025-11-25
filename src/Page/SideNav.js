@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getMachinesByLine } from "../api";
 import "./HomePage.css";
+import Logo from "./VCC Tech.png";
 
 const SideNav = ({ lines, onSelectMachine, onLogout }) => {
   const navigate = useNavigate();
@@ -72,7 +73,9 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="logo">🌿 MyApp</div>
+        <div className="logo">
+          <img src={Logo} alt="VCC Tech" style={{ height: "45px" }} />
+        </div>
       </div>
 
       <div className="sidebar-menu">
@@ -94,9 +97,16 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
               onMouseEnter={() => handleLineMouseEnter(line.idline)}
               onMouseLeave={handleLineMouseLeave}
             >
-              <button
+              {/* <button
                 onClick={() => handleGoLine(line.idline)}
                 className={`menu-btn ${isActiveLine ? "active" : ""}`}
+              >
+                {line.ten_line}
+              </button> */}
+              {/* ====== CLICK → HIỂN THỊ LinePage ====== */}
+              <button
+                className={`menu-btn ${isActiveLine ? "active" : ""}`}
+                onClick={() => navigate(`/line/${line.idline}`, { state: { line } })}
               >
                 {line.ten_line}
               </button>
@@ -131,22 +141,20 @@ const SideNav = ({ lines, onSelectMachine, onLogout }) => {
               )}
             </div>
           );
+          
         })}
-
-        <div className="sidebar-bottom">
           <button
-            className={`menu-btn secondary-btn ${isPlan ? "active" : ""}`}
+            className={`menu-btn home-btn ${isPlan ? "active" : ""}`}
             onClick={handleGoPlan}
           >
-            Kế hoạch
+            Plan
           </button>
           <button
-            className={`menu-btn secondary-btn ${isError ? "active" : ""}`}
+            className={`menu-btn home-btn ${isError ? "active" : ""}`}
             onClick={handleGoError}
           >
-            Thống kê lỗi
+            Trouble
           </button>
-        </div>
       </div>
     </aside>
   );

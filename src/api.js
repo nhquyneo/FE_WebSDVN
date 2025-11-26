@@ -283,3 +283,104 @@ export async function updateAllMonthPlans(planList) {
   if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
   return res.json();
 }
+export async function getErrorAnalysByDay({ idline, idmay, date, sortBy }) {
+  const params = new URLSearchParams({
+    idline,
+    date,
+    sortBy: sortBy || "count", // 'count' | 'time'
+  });
+
+  if (idmay && idmay !== "All") {
+    params.append("idmay", idmay);
+  }
+
+  const res = await fetch(`${API_BASE}/api/erroranalys/day?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  return res.json(); // [{ MachineName, ErrorCode, ErrorName_Vie, ErrorCount, TotalErrorSeconds }, ...]
+}
+export async function getErrorAnalysByMonth({ idline, idmay, month, sortBy }) {
+  const params = new URLSearchParams();
+
+  params.append("idline", idline);
+  params.append("month", month);
+  params.append("sortBy", sortBy || "count"); // 'count' hoặc 'time'
+
+  // nếu idmay = 'All' thì không gửi, BE hiểu là tất cả máy
+  if (idmay && idmay !== "All") {
+    params.append("idmay", idmay);
+  }
+
+  const res = await fetch(`${API_BASE}/api/error-analysis/month?${params.toString()}`);
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return res.json();
+}
+export async function getErrorAnalysByYear({ idline, idmay, year, sortBy }) {
+  const params = new URLSearchParams();
+
+  params.append("idline", idline);
+  params.append("year", year);
+  params.append("sortBy", sortBy || "count"); // 'count' hoặc 'time'
+
+  if (idmay && idmay !== "All") {
+    params.append("idmay", idmay);
+  }
+
+  const res = await fetch(`${API_BASE}/api/error-analysis/year?${params.toString()}`);
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+
+  return res.json();
+}
+export async function getErrorEventsDay(date, lineId, machineId) {
+  const params = new URLSearchParams();
+  params.append("date", date);
+  params.append("lineid", lineId);
+  if (machineId && machineId !== "All") {
+    params.append("machineid", machineId);
+  }
+
+  const res = await fetch(`${API_BASE}/api/error-events?` + params.toString());
+  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  return res.json(); // mảng object
+}
+export async function getErrorEventsMonth( month, lineId, machineId) {
+  const params = new URLSearchParams();
+  params.append("month", month);
+  params.append("lineid", lineId);
+
+  if (machineId && machineId !== "All") {
+    params.append("machineid", machineId);
+  }
+
+  const res = await fetch(`${API_BASE}/api/error-events-month?` + params.toString());
+
+  if (!res.ok) throw new Error("Lỗi API error-events-month");
+
+  return res.json();
+}
+export async function getErrorEventsYear(year, lineId, machineId) {
+  const params = new URLSearchParams();
+
+  params.append("year", year);
+  params.append("lineid", lineId);
+
+  if (machineId && machineId !== "All") {
+    params.append("machineid", machineId);
+  }
+
+  const res = await fetch(
+    `${API_BASE}/api/error-events-year?` + params.toString()
+  );
+
+  if (!res.ok) throw new Error("Lỗi API error-events-year");
+
+  return res.json();
+}

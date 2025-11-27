@@ -12,7 +12,7 @@ import SideNav from "../Page/SideNav";
 
 import { linename } from "../api";
 
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "http://10.73.132.145:5000";
 
 export default function LinePage() {
   const location = useLocation();

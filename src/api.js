@@ -1,4 +1,4 @@
-const API_BASE = "http://10.73.132.145:5000"; // hoặc http://10.73.132.85:5000 nếu gọi qua mạng LAN
+const API_BASE = "http://127.0.0.1:5000"; // hoặc http://10.73.132.85:5000 nếu gọi qua mạng LAN
 
 export async function login(username, password) {
   const res = await fetch(`${API_BASE}/api/login`, {

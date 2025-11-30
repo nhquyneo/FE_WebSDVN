@@ -33,16 +33,60 @@ export default function MachineDayPage({ machine, day }) {
     Glue_CleaningPaper: "#fb7185",
     Others:             "#6b7280",
   };
+  // useEffect(() => {
+  //   if (!machine || !day) return;
+
+  //   async function loadData() {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
+
+  //       const data = await fetchMachineDay(machine.id, day);
+  //       console.log("MachineDay API data:", data);
+
+  //       if (!data || !Array.isArray(data.pie)) {
+  //         setPieData([]);
+  //         setDetailRows([]);
+  //         setPowerRun("");
+  //         setTotalHours(null);
+  //         setProductInfo(null);
+  //       } else {
+  //         setPieData(data.pie || []);
+  //         setDetailRows(data.details || []);
+  //         setPowerRun(data.power_run || "");
+  //         setTotalHours(
+  //           typeof data.total_hours === "number" ? data.total_hours : null
+  //         );
+  //         setProductInfo(data.product || null);
+  //       }
+  //     } catch (err) {
+  //       console.error("Lỗi load dữ liệu máy theo ngày:", err);
+  //       setError("Không tải được dữ liệu từ server");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   loadData();
+  // }, [machine, day]);
+
+  // if (!machine || !day) return null;
+
+  // ✅ THÊM POLLING 2s
   useEffect(() => {
     if (!machine || !day) return;
 
-    async function loadData() {
+    let isCancelled = false;
+
+    async function loadData(showLoading = false) {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError("");
 
         const data = await fetchMachineDay(machine.id, day);
         console.log("MachineDay API data:", data);
+
+        if (isCancelled) return;
 
         if (!data || !Array.isArray(data.pie)) {
           setPieData([]);
@@ -61,13 +105,29 @@ export default function MachineDayPage({ machine, day }) {
         }
       } catch (err) {
         console.error("Lỗi load dữ liệu máy theo ngày:", err);
-        setError("Không tải được dữ liệu từ server");
+        if (!isCancelled) {
+          setError("Không tải được dữ liệu từ server");
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled && showLoading) {
+          setLoading(false);
+        }
       }
     }
 
-    loadData();
+    // Lần đầu: có overlay
+    loadData(true);
+
+    // Polling 2s: các lần sau không bật overlay để đỡ nhấp nháy
+    const intervalId = setInterval(() => {
+      loadData(false);
+    }, 4000);
+
+    // Cleanup khi đổi machine/day hoặc unmount
+    return () => {
+      isCancelled = true;
+      clearInterval(intervalId);
+    };
   }, [machine, day]);
 
   if (!machine || !day) return null;

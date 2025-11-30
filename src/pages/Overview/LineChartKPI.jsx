@@ -14,7 +14,6 @@ import { getLineKpi } from "../../api";
 
 // Fill đủ ngày trong tháng, ngày nào không có data => 0
 function fillMonthData(rawData, month, year) {
-  // month: 1-12. new Date(year, month, 0) => ngày cuối cùng của tháng đó
   const daysInMonth = new Date(year, month, 0).getDate();
 
   const mapByDay = {};
@@ -44,21 +43,43 @@ export default function LineChartKPI({ lineName, month, year, dataset }) {
   const [loading, setLoading] = useState(false); // overlay
 
   useEffect(() => {
-    async function load() {
-      try { 
-        setLoading(true);
+    let isCancelled = false;
+
+    async function fetchData(showLoading = false) {
+      try {
+        if (showLoading) setLoading(true);
         const raw = await getLineKpi(lineName, month, year, dataset);
-        const filled = fillMonthData(raw, month, year);
-        setData(filled);
+        if (!isCancelled) {
+          const filled = fillMonthData(raw, month, year);
+          setData(filled);
+        }
       } catch (error) {
         console.error("Error load KPI:", error);
-        // lỗi hoặc không có data -> vẫn fill đủ ngày = 0
-        setData(fillMonthData([], month, year));
+        if (!isCancelled) {
+          // lỗi hoặc không có data -> vẫn fill đủ ngày = 0
+          setData(fillMonthData([], month, year));
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled && showLoading) {
+          setLoading(false);
+        }
       }
     }
-    load();
+
+    // gọi lần đầu có overlay
+    fetchData(true);
+
+    // polling mỗi 200ms
+    const intervalId = setInterval(() => {
+      // các lần sau không cần overlay để tránh nhấp nháy
+      fetchData(false);
+    }, 5000);
+
+    // cleanup khi unmount hoặc khi đổi lineName / month / year / dataset
+    return () => {
+      isCancelled = true;
+      clearInterval(intervalId);
+    };
   }, [lineName, month, year, dataset]);
 
   const showAll = dataset === "all";

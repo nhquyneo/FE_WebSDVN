@@ -35,17 +35,59 @@ export default function LineDayPage({ line, day }) {
     Others: "#6b7280",
   };
 
+  // useEffect(() => {
+  //   if (!line || !day) return;
+
+  //   async function loadData() {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
+
+  //       const data = await fetchLineDay(line.id, day);
+  //       console.log("LineDay API data:", data);
+
+  //       if (!data || !Array.isArray(data.pie)) {
+  //         setPieData([]);
+  //         setDetailRows([]);
+  //         setPowerRun("");
+  //         setTotalHours(null);
+  //         setProductInfo(null);
+  //       } else {
+  //         setPieData(data.pie || []);
+  //         setDetailRows(data.details || []);
+  //         setPowerRun(data.power_run || "");
+  //         setTotalHours(
+  //           typeof data.total_hours === "number" ? data.total_hours : null
+  //         );
+  //         setProductInfo(data.product || null);
+  //       }
+  //     } catch (err) {
+  //       console.error("Lỗi load dữ liệu line theo ngày:", err);
+  //       setError("Không tải được dữ liệu từ server");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   loadData();
+  // }, [line, day]);
+
+  // if (!line || !day) return null;
   useEffect(() => {
     if (!line || !day) return;
-
-    async function loadData() {
+  
+    let isCancelled = false;
+  
+    async function loadData(showLoading = false) {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError("");
-
+  
         const data = await fetchLineDay(line.id, day);
         console.log("LineDay API data:", data);
-
+  
+        if (isCancelled) return;
+  
         if (!data || !Array.isArray(data.pie)) {
           setPieData([]);
           setDetailRows([]);
@@ -63,16 +105,33 @@ export default function LineDayPage({ line, day }) {
         }
       } catch (err) {
         console.error("Lỗi load dữ liệu line theo ngày:", err);
-        setError("Không tải được dữ liệu từ server");
+        if (!isCancelled) {
+          setError("Không tải được dữ liệu từ server");
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled && showLoading) {
+          setLoading(false);
+        }
       }
     }
-
-    loadData();
+  
+    // Lần đầu: có overlay
+    loadData(true);
+  
+    // Polling 2s: các lần sau không bật loading để tránh nhấp nháy
+    const intervalId = setInterval(() => {
+      loadData(false);
+    }, 4000);
+  
+    // Cleanup khi đổi line/day hoặc unmount
+    return () => {
+      isCancelled = true;
+      clearInterval(intervalId);
+    };
   }, [line, day]);
-
+  
   if (!line || !day) return null;
+  
 
   const handleExportExcel = () => {
     if (!detailRows.length && !productInfo) {

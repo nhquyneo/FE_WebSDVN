@@ -32,15 +32,76 @@ export default function LineMonthPage({ line, month, dataType }) {
   const [errorRatio, setErrorRatio] = useState("");
   const [errorTime, setErrorTime] = useState("");
 
+  // // ------------- LOAD RATIO (phụ thuộc cả dataType) -------------
+  // useEffect(() => {
+  //   if (!line || !month) return;
+
+  //   let isCancelled = false;
+
+  //   async function loadRatio() {
+  //     try {
+  //       setLoadingRatio(true);
+  //       setErrorRatio("");
+
+  //       const data = await fetchLineMonthRatio(line.id, month, dataType);
+  //       if (isCancelled) return;
+  //       setRatioDays(data.days || []);
+  //     } catch (err) {
+  //       console.error("Lỗi load ratio tháng (line):", err);
+  //       if (!isCancelled) {
+  //         setErrorRatio("Không tải được dữ liệu ratio theo tháng (line)");
+  //       }
+  //     } finally {
+  //       if (!isCancelled) setLoadingRatio(false);
+  //     }
+  //   }
+
+  //   loadRatio();
+
+  //   return () => {
+  //     isCancelled = true;
+  //   };
+  // }, [line, month, dataType]);
+
+  // // ------------- LOAD TIME (thời gian) – chỉ phụ thuộc line + month -------------
+  // useEffect(() => {
+  //   if (!line || !month) return;
+
+  //   let isCancelled = false;
+
+  //   async function loadTime() {
+  //     try {
+  //       setLoadingTime(true);
+  //       setErrorTime("");
+
+  //       const data = await fetchLineMonth(line.id, month);
+  //       if (isCancelled) return;
+  //       setTimeDays(data.days || []);
+  //     } catch (err) {
+  //       console.error("Lỗi load time tháng (line):", err);
+  //       if (!isCancelled) {
+  //         setErrorTime("Không tải được dữ liệu thời gian theo tháng (line)");
+  //       }
+  //     } finally {
+  //       if (!isCancelled) setLoadingTime(false);
+  //     }
+  //   }
+
+  //   loadTime();
+
+  //   return () => {
+  //     isCancelled = true;
+  //   };
+  // }, [line, month]);
   // ------------- LOAD RATIO (phụ thuộc cả dataType) -------------
   useEffect(() => {
     if (!line || !month) return;
 
     let isCancelled = false;
 
-    async function loadRatio() {
+    async function loadRatio(showLoading = false) {
       try {
-        setLoadingRatio(true);
+        if (showLoading) setLoadingRatio(true);
         setErrorRatio("");
 
         const data = await fetchLineMonthRatio(line.id, month, dataType);
@@ -52,47 +113,65 @@ export default function LineMonthPage({ line, month, dataType }) {
           setErrorRatio("Không tải được dữ liệu ratio theo tháng (line)");
         }
       } finally {
-        if (!isCancelled) setLoadingRatio(false);
+        if (!isCancelled && showLoading) {
+          setLoadingRatio(false);
+        }
       }
     }
 
-    loadRatio();
+    // Lần đầu: có overlay
+  loadRatio(true);
 
-    return () => {
-      isCancelled = true;
-    };
+  // Polling 2s: các lần sau không bật loading để đỡ nhấp nháy
+  const intervalId = setInterval(() => {
+    loadRatio(false);
+  }, 4000);
+
+  return () => {
+    isCancelled = true;
+    clearInterval(intervalId);
+  };
   }, [line, month, dataType]);
 
   // ------------- LOAD TIME (thời gian) – chỉ phụ thuộc line + month -------------
-  useEffect(() => {
-    if (!line || !month) return;
+useEffect(() => {
+  if (!line || !month) return;
 
-    let isCancelled = false;
+  let isCancelled = false;
 
-    async function loadTime() {
-      try {
-        setLoadingTime(true);
-        setErrorTime("");
+  async function loadTime(showLoading = false) {
+    try {
+      if (showLoading) setLoadingTime(true);
+      setErrorTime("");
 
-        const data = await fetchLineMonth(line.id, month);
-        if (isCancelled) return;
-        setTimeDays(data.days || []);
-      } catch (err) {
-        console.error("Lỗi load time tháng (line):", err);
-        if (!isCancelled) {
-          setErrorTime("Không tải được dữ liệu thời gian theo tháng (line)");
-        }
-      } finally {
-        if (!isCancelled) setLoadingTime(false);
+      const data = await fetchLineMonth(line.id, month);
+      if (isCancelled) return;
+      setTimeDays(data.days || []);
+    } catch (err) {
+      console.error("Lỗi load time tháng (line):", err);
+      if (!isCancelled) {
+        setErrorTime("Không tải được dữ liệu thời gian theo tháng (line)");
+      }
+    } finally {
+      if (!isCancelled && showLoading) {
+        setLoadingTime(false);
       }
     }
+  }
 
-    loadTime();
+  // Lần đầu
+  loadTime(true);
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [line, month]);
+  // Polling 4s
+  const intervalId = setInterval(() => {
+    loadTime(false);
+  }, 4000);
+
+  return () => {
+    isCancelled = true;
+    clearInterval(intervalId);
+  };
+}, [line, month]);
 
   const monthLabel = `Tháng ${String(month || "").padStart(2, "0")}`;
   const normalizedType = (dataType || "ALL").toUpperCase().trim();
